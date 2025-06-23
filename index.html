@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ListenMonsters</title>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to bottom, #e0f7fa, #b2ebf2); /* 白と水色のグラデーション背景 */
+      color: #333; /* テキスト色を濃いグレーに */
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+      color: #0d47a1; /* タイトル色を濃い青に */
+    }
+
+    button {
+      font-size: 1.2rem;
+      padding: 15px 30px;
+      margin: 15px 0;
+      border-radius: 30px;
+      border: none;
+      background: linear-gradient(to right, #64b5f6, #1e88e5); /* 青色のグラデーションボタン */
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+      display: inline-block; /* ボタンが中央寄せの対象になるように */
+      position: relative; /* キラッと光るアニメーションのために必要 */
+      overflow: hidden; /* キラッと光るアニメーションがボタンからはみ出ないように */
+      z-index: 1; /* 光がボタンの上に表示されるように */
+    }
+
+    button:disabled {
+      background: #90caf9; /* 薄い青色 */
+      cursor: not-allowed;
+      box-shadow: none;
+      animation: none; /* 無効時はアニメーションを停止 */
+    }
+
+    /* 新しいスタイル：ボタンコンテナ */
+    .button-container {
+        text-align: center;
+        margin-bottom: 20px; /* 必要に応じて調整 */
+    }
+
+
+    .section {
+      margin: 30px 0;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.7); /* 白色の半透明背景 */
+      border-radius: 20px;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+      width: 90%;
+      max-width: 600px;
+      text-align: center; /* セクション内のテキストも中央寄せにする場合 */
+    }
+
+    .character {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin: 10px auto; /* 左右マージンをautoにして中央寄せ */
+      /* backgroundはrarity-specific classで定義 */
+      border: 1px solid #b0bec5; /* 薄いグレーの枠線 */
+      border-radius: 20px;
+      font-size: 1.1rem;
+      text-align: left; /* キャラクター内のテキストは左寄せに戻す */
+      max-width: 90%; /* キャラクター要素の最大幅 */
+      position: relative; /* キラキラアニメーションのために追加 */
+      overflow: hidden; /* キラキラアニメーションがはみ出ないように */
+    }
+
+    .character img {
+      width: 70px;
+      height: 70px;
+      margin-right: 15px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      object-fit: cover;
+      z-index: 2; /* 画像がアニメーションの上に表示されるように */
+      position: relative; /* z-indexを適用するために必要 */
+    }
+
+    .rare1 { background: rgba(179, 229, 252, 0.7); } /* 薄い水色 */
+    .rare2 { background: rgba(129, 212, 250, 0.7); } /* 少し濃い水色 */
+    /* rare3 (星3) のスタイルを金色とキラキラアニメーションに設定 */
+    .rare3 {
+      background: linear-gradient(135deg, #FFD700, #FFC107, #FFD700); /* 金色のグラデーション */
+      font-weight: bold;
+      border: 2px solid #FFD700; /* 金色の枠線 */
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); /* 金色の光彩 */
+    }
+
+    /* rare3のキラキラアニメーション */
+    .rare3::before,
+    .rare3::after { /* ::afterも追加 */
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 10%, rgba(255, 255, 255, 0) 70%); /* 透明度を上げてより明るく */
+      opacity: 0;
+      transform: scale(0);
+      animation: sparkle-more 3s infinite ease-out; /* アニメーション時間を長くして、動きを滑らかに */
+      pointer-events: none; /* クリックイベントを妨げないように */
+      z-index: 1; /* 背景とテキストの間に表示 */
+    }
+
+    .rare3::after {
+      animation-delay: 1.5s; /* ::beforeとずらして、常にキラキラしているように見せる */
+      animation-duration: 3.5s; /* 少し異なる速度 */
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 15%, rgba(255, 255, 255, 0) 75%); /* 少し異なる光り方 */
+    }
+
+    @keyframes sparkle-more {
+      0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+      }
+      20% {
+        transform: scale(0.8) rotate(72deg); /* より大きく */
+        opacity: 0.8; /* より明るく */
+      }
+      40% {
+        transform: scale(0.6) rotate(144deg); /* 一度縮んで再度広がる動き */
+        opacity: 0.6;
+      }
+      60% {
+        transform: scale(1.0) rotate(216deg); /* 再度大きく */
+        opacity: 0.9;
+      }
+      80% {
+        transform: scale(0.7) rotate(288deg); /* 最後にもう一度縮む */
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(0) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+
+    #result {
+      margin: 20px 0;
+      font-size: 1.4rem;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+      min-height: 80px;
+    }
+
+    #result img {
+      max-width: 120px;
+      max-height: 120px;
+      margin-bottom: 10px;
+      border-radius: 15px;
+      border: 3px solid #03a9f4; /* 水色の枠線 */
+      box-shadow: 0 0 10px rgba(3, 169, 244, 0.5); /* 水色の光 */
+    }
+
+    #user-info {
+      margin-bottom: 15px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+      color: #1565c0; /* 濃い青色 */
+    }
+
+    #transcript {
+      font-size: 1.1rem;
+      margin-top: 10px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+    }
+
+    #kanaCount, #points {
+      font-size: 1.1rem;
+      margin-top: 5px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+    }
+
+    #collection {
+      text-align: center; /* コレクション全体を中央寄せ */
+    }
+
+    /* ガチャボタンのキラッと光るアニメーション */
+    #gachaBtn.shine-animation::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -75%; /* 開始位置を左外に */
+      width: 50%; /* 光の幅 */
+      height: 100%;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0) 100%);
+      transform: skewX(-20deg); /* 斜めにする */
+      animation: shine 1.5s infinite linear; /* アニメーションの設定 */
+    }
+
+    @keyframes shine {
+      0% {
+        left: -75%;
+      }
+      100% {
+        left: 100%; /* 終了位置を右外に */
+      }
+    }
+
+
+    /* レスポンシブ対応 */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      button {
+        font-size: 1rem;
+        padding: 10px 20px;
+      }
+
+      .section {
+        margin: 20px 0;
+        padding: 15px;
+      }
+
+      .character {
+        font-size: 1rem;
+        margin: 10px auto; /* モバイルでも中央寄せ */
+      }
+
+      .character img {
+        width: 50px;
+        height: 50px;
+      }
+
+      #result {
+        font-size: 1.2rem;
+      }
+
+      #result img {
+        max-width: 80px;
+        max-height: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ListenMonsters</h1>
+
+  <div id="user-info">ログインしていません</div>
+  <div class="button-container">
+    <button id="btn-login">Googleでログイン</button>
+    <button id="btn-logout" style="display:none;">ログアウト</button>
+  </div>
+
+  <div class="section">
+    <div class="button-container">
+      <button id="startBtn" disabled>🎙️ 音声入力スタート</button>
+    </div>
+    <div id="transcript">🎧 話した内容がここに表示されます</div>
+    <div id="kanaCount">🔢 カウント：</div>
+    <div id="points">💰 現在のポイント：0</div>
+  </div>
+
+  <div class="section">
+    <div class="button-container">
+      <button id="gachaBtn" disabled>🎁 ガチャを引く（10pt）</button>
+    </div>
+    <div id="result"></div>
+  </div>
+
+  <div class="section">
+    <h2>📚 コレクション</h2>
+    <div id="collection">まだキャラを獲得していません。</div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Firebase設定（ここを自分のプロジェクト設定に変えてください）
+      const firebaseConfig = {
+        
+      };
+
+      // Firebase 初期化
+      const app = window.firebase.initializeApp(firebaseConfig);
+      const db = window.firebase.firestore(app);
+      const auth = window.firebase.auth(app);
+      const provider = new window.firebase.auth.GoogleAuthProvider();
+
+      // DOM要素
+      const userInfoDiv = document.getElementById("user-info");
+      const btnLogin = document.getElementById("btn-login");
+      const btnLogout = document.getElementById("btn-logout");
+      const startBtn = document.getElementById("startBtn");
+      const transcriptDiv = document.getElementById("transcript");
+      const kanaCountDiv = document.getElementById("kanaCount");
+      const pointsDiv = document.getElementById("points");
+      const gachaBtn = document.getElementById("gachaBtn");
+      const resultDiv = document.getElementById("result");
+      const collectionDiv = document.getElementById("collection");
+
+      // 音声認識準備
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = "ja-JP";
+      recognition.continuous = false;
+
+      // 変数
+      let currentUser = null;
+      let points = 0;
+      let collection = [];
+
+      // キャラクターデータ
+      const characters = [
+        { name: "ねこ勇者", rarity: "★", class: "rare1", weight: 60, image: "images/neko_yuusha.png" },
+        { name: "チーズ王子", rarity: "★★", class: "rare2", weight: 30, image: "images/cheese_ouji.png" },
+        { name: "レアうさぎ", rarity: "★★★", class: "rare3", weight: 10, image: "images/rare_usagi.png" },
+        { name: "ぴよ賢者", rarity: "★", class: "rare1", weight: 50, image: "images/piyo_kenja.png" },
+        { name: "りす魔導士", rarity: "★★", class: "rare2", weight: 20, image: "images/risu_madoushi.png" },
+      ];
+
+      const totalWeight = characters.reduce((sum, char) => sum + char.weight, 0);
+
+      // 認証状態監視
+      window.firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
+          currentUser = user;
+          userInfoDiv.textContent = `ログイン中: ${user.displayName}`;
+          btnLogin.style.display = "none";
+          btnLogout.style.display = "inline-block";
+          startBtn.disabled = false;
+          await loadUserData();
+          gachaBtn.disabled = points < 10;
+          // ここでガチャボタンの初期アニメーション状態を設定
+          updateGachaButtonAnimation();
+        } else {
+          currentUser = null;
+          userInfoDiv.textContent = "ログインしていません";
+          btnLogin.style.display = "inline-block";
+          btnLogout.style.display = "none";
+          startBtn.disabled = true;
+          gachaBtn.disabled = true;
+          points = 0;
+          pointsDiv.textContent = `💰 現在のポイント：${points}`;
+          collection = [];
+          updateCollection();
+          transcriptDiv.textContent = "🎧 話した内容がここに表示されます";
+          kanaCountDiv.textContent = "🔢 カウント：";
+          resultDiv.textContent = "";
+          updateGachaButtonAnimation(); // ログアウト時もアニメーションを停止
+        }
+      });
+
+      // ログイン
+      btnLogin.addEventListener("click", async () => {
+        try {
+          await window.firebase.auth().signInWithPopup(provider);
+        } catch (e) {
+          alert("ログインに失敗しました: " + e.message);
+        }
+      });
+
+      // ログアウト
+      btnLogout.addEventListener("click", () => {
+        window.firebase.auth().signOut();
+      });
+
+      // Firestoreからユーザーデータを読み込む関数
+      async function loadUserData() {
+        if (!currentUser) return;
+        const userDocRef = db.collection("users").doc(currentUser.uid);
+        const docSnap = await userDocRef.get();
+
+        if (docSnap.exists) {
+          const userData = docSnap.data();
+          points = userData.points || 0;
+          // Firestoreから読み込んだコレクションのキャラクター情報に画像パスがなければ追加（互換性のため）
+          collection = userData.characters ? userData.characters.map(item => {
+            const charData = characters.find(char => char.name === item.name);
+            return charData ? { ...item, image: charData.image } : item;
+          }) : [];
+        } else {
+          points = 0;
+          collection = [];
+          await userDocRef.set({ points: 0, characters: [] });
+        }
+        pointsDiv.textContent = `💰 現在のポイント：${points}`;
+        updateCollection();
+      }
+
+      // Firestoreにポイントを保存する関数
+      async function savePoints(newPoints) {
+        if (!currentUser) return;
+        const userDocRef = db.collection("users").doc(currentUser.uid);
+        try {
+          await userDocRef.update({ points: newPoints });
+          points = newPoints;
+          pointsDiv.textContent = `💰 現在のポイント：${points}`;
+          // ポイントが更新されたらボタンの有効/無効状態とアニメーションを更新
+          gachaBtn.disabled = points < 10;
+          updateGachaButtonAnimation();
+        } catch (e) {
+          console.error("ポイントの保存に失敗しました:", e);
+          alert("ポイントの保存に失敗しました。");
+        }
+      }
+
+      // Firestoreにコレクションを保存する関数
+      async function saveCollection(newChar) {
+        if (!currentUser) return;
+        const userDocRef = db.collection("users").doc(currentUser.uid);
+        try {
+            // Firestoreに保存する際は、画像パスは含めない（または含めても良いが、今回は名前とレアリティのみにする）
+            // アプリケーション側でキャラクターデータを管理するため
+            await userDocRef.update({
+                characters: window.firebase.firestore.FieldValue.arrayUnion({
+                    name: newChar.name,
+                    rarity: newChar.rarity,
+                    class: newChar.class // classも保存しておく
+                })
+            });
+            // ローカルのコレクションには画像パスを含む完全なオブジェクトを追加
+            collection.push(newChar);
+            updateCollection();
+        } catch (e) {
+            console.error("コレクションの保存に失敗しました:", e);
+            alert("コレクションの保存に失敗しました。");
+        }
+      }
+
+      // ガチャボタンのアニメーションを制御する関数
+      function updateGachaButtonAnimation() {
+        if (!gachaBtn.disabled) {
+          gachaBtn.classList.add('shine-animation');
+        } else {
+          gachaBtn.classList.remove('shine-animation');
+        }
+      }
+
+      // 音声認識開始ボタン
+      startBtn.onclick = () => {
+        resultDiv.textContent = "";
+        recognition.start();
+      };
+
+      // 音声認識結果取得
+      recognition.onresult = async (event) => {
+        const recognizedText = event.results[0][0].transcript;
+        transcriptDiv.textContent = "📄 文字起こし：" + recognizedText;
+
+        const kanaCounts = {};
+        for (let ch of recognizedText) {
+          kanaCounts[ch] = (kanaCounts[ch] || 0) + 1;
+        }
+
+        const display = Object.entries(kanaCounts)
+          .filter(([_, count]) => count > 0)
+          .map(([char, count]) => `${char}: ${count}`)
+          .join(" / ");
+        kanaCountDiv.textContent = "🔤 カウント: " + display;
+
+        const addedPoints = Object.values(kanaCounts).reduce((a, b) => a + b, 0);
+        
+        await savePoints(points + addedPoints); // ポイントが更新されるとupdateGachaButtonAnimationが呼ばれる
+      };
+
+      // ガチャボタン押下時
+      gachaBtn.onclick = async () => {
+        if (points < 10) {
+          alert("ポイントが足りません！");
+          return;
+        }
+        
+        await savePoints(points - 10); // ポイントが減るとupdateGachaButtonAnimationが呼ばれる
+        const rand = Math.random() * totalWeight;
+        let cumulativeWeight = 0;
+        let resultChar = null;
+
+        for (const char of characters) {
+            cumulativeWeight += char.weight;
+            if (rand < cumulativeWeight) {
+                resultChar = char;
+                break;
+            }
+        }
+        if (!resultChar) {
+            resultChar = characters[0]; // 万が一見つからなかった場合
+        }
+
+        // ★ガチャ結果にも画像を表示するように変更★
+        resultDiv.innerHTML = `
+            <img src="${resultChar.image}" alt="${resultChar.name}">
+            <br>
+            🎉 <strong>${resultChar.name}</strong>（${resultChar.rarity}）をゲット！
+        `;
+        
+        // saveCollection関数に完全なキャラクターオブジェクトを渡すように変更
+        await saveCollection(resultChar); 
+      };
+
+      // コレクション表示更新
+      function updateCollection() {
+        if (collection.length === 0) {
+          collectionDiv.textContent = "まだキャラを獲得していません。";
+          return;
+        }
+        // ★コレクション表示に画像を追加しました★
+        collectionDiv.innerHTML = collection.map(c =>
+          `<div class="character ${c.class}">
+             <img src="${c.image}" alt="${c.name}">
+             <span>${c.name}（${c.rarity}）</span>
+           </div>`
+        ).join("");
+      }
+    });
+  </script>
+
+</body>
+</html>
