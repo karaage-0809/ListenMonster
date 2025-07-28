@@ -1,0 +1,448 @@
+/* style.css */
+
+/* 全体的なスタイル */
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to bottom, #e0f7fa, #b2ebf2); /* 白と水色のグラデーション背景 */
+    color: #333; /* テキスト色を濃いグレーに */
+    padding: 20px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* 上部に寄せる */
+    min-height: 100vh;
+    box-sizing: border-box; /* paddingがwidth/heightに含まれるように */
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+    color: #0d47a1; /* タイトル色を濃い青に */
+    text-align: center;
+}
+
+/* ユーザー情報とボタンコンテナ */
+#user-info {
+    margin-bottom: 15px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+    color: #1565c0; /* 濃い青色 */
+    text-align: center;
+}
+
+.button-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+button {
+    font-size: 1.2rem;
+    padding: 15px 30px;
+    margin: 8px 10px; /* 複数のボタンが並ぶことを想定 */
+    border-radius: 30px;
+    border: none;
+    background: linear-gradient(to right, #64b5f6, #1e88e5); /* 青色のグラデーションボタン */
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+button:disabled {
+    background: #90caf9; /* 薄い青色 */
+    cursor: not-allowed;
+    box-shadow: none;
+    animation: none; /* 無効時はアニメーションを停止 */
+    transform: none; /* ホバー効果も停止 */
+}
+
+/* キラッと光るアニメーション */
+#gachaBtn.shine-animation::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-20deg);
+    animation: shine 1.5s infinite linear;
+}
+
+@keyframes shine {
+    0% { left: -75%; }
+    100% { left: 100%; }
+}
+
+/* セクション共通スタイル */
+.section {
+    margin: 20px 0; /* マージンを調整 */
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.7); /* 白色の半透明背景 */
+    border-radius: 20px;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 影を弱めに */
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+}
+
+/* 入力と結果表示エリア */
+#transcript, #kanaCount, #points {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    color: #333;
+}
+
+#points {
+    font-weight: bold;
+    color: #00796b; /* ポイントの文字色を少し強調 */
+    font-size: 1.2rem;
+}
+
+#result {
+    margin: 20px 0;
+    font-size: 1.4rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    min-height: 80px; /* 結果表示エリアの最小高さを確保 */
+    display: flex; /* 中央寄せのためにflexboxを使用 */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#result img {
+    max-width: 120px;
+    max-height: 120px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+    border: 3px solid #03a9f4; /* 水色の枠線 */
+    box-shadow: 0 0 10px rgba(3, 169, 244, 0.5); /* 水色の光 */
+    object-fit: contain; /* 画像が歪まないように */
+}
+
+/* コレクションセクション */
+#collection {
+    text-align: center; /* コレクション全体を中央寄せ */
+    display: flex;
+    flex-wrap: wrap; /* 折り返しを許可 */
+    justify-content: center; /* アイテムを中央に配置 */
+    gap: 15px; /* アイテム間のスペース */
+    padding: 10px;
+}
+
+.character {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    /* margin: 10px auto; /* flexboxを使うので左右autoは不要になる場合が多い */
+    border: 1px solid #b0bec5;
+    border-radius: 20px;
+    font-size: 1.1rem;
+    text-align: left;
+    max-width: 90%; /* 個々のキャラクター要素の最大幅 */
+    flex-basis: calc(50% - 15px); /* 2列表示の基本、gapを考慮 */
+    box-sizing: border-box; /* paddingがwidthに含まれるように */
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.character:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+
+.character img {
+    width: 70px;
+    height: 70px;
+    margin-right: 15px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    object-fit: cover;
+    z-index: 2;
+    position: relative;
+}
+
+/* レアリティごとの背景色 */
+.rare1 { background: rgba(179, 229, 252, 0.7); } /* 薄い水色 */
+.rare2 { background: rgba(129, 212, 250, 0.7); } /* 少し濃い水色 */
+.rare3 {
+    background: linear-gradient(135deg, #FFD700, #FFC107, #FFD700); /* 金色のグラデーション */
+    font-weight: bold;
+    border: 2px solid #FFD700; /* 金色の枠線 */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); /* 金色の光彩 */
+}
+
+/* rare3のキラキラアニメーション */
+.rare3::before,
+.rare3::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 10%, rgba(255, 255, 255, 0) 70%);
+    opacity: 0;
+    transform: scale(0);
+    animation: sparkle-more 3s infinite ease-out;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.rare3::after {
+    animation-delay: 1.5s;
+    animation-duration: 3.5s;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 15%, rgba(255, 255, 255, 0) 75%);
+}
+
+@keyframes sparkle-more {
+    0% { transform: scale(0) rotate(0deg); opacity: 0; }
+    20% { transform: scale(0.8) rotate(72deg); opacity: 0.8; }
+    40% { transform: scale(0.6) rotate(144deg); opacity: 0.6; }
+    60% { transform: scale(1.0) rotate(216deg); opacity: 0.9; }
+    80% { transform: scale(0.7) rotate(288deg); opacity: 0.5; }
+    100% { transform: scale(0) rotate(360deg); opacity: 0; }
+}
+
+/* ログイン/登録フォームのスタイル */
+.form-container {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    margin-top: 20px; /* 他のコンテンツとの間にスペース */
+}
+
+.form-container h2 {
+    color: #0d47a1;
+    margin-bottom: 25px;
+}
+
+.form-container input[type="text"],
+.form-container input[type="password"] {
+    width: calc(100% - 20px); /* paddingを考慮 */
+    padding: 12px;
+    margin-bottom: 18px;
+    border: 1px solid #ddd;
+    border-radius: 8px; /* 角を丸く */
+    font-size: 1.05rem;
+    box-sizing: border-box; /* paddingとborderがwidthに含まれるように */
+}
+
+.form-container button {
+    width: 100%;
+    padding: 15px;
+    border-radius: 8px; /* 角を丸く */
+    font-size: 1.15rem;
+    margin-top: 5px; /* 上のinputとの間隔 */
+}
+
+.form-container .message {
+    margin-top: 15px;
+    font-weight: bold;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.form-container .message[style*="green"] { /* 登録成功メッセージ */
+    color: #28a745; /* BootstrapのSuccessカラー */
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.form-container .message[style*="red"] { /* エラーメッセージ */
+    color: #dc3545; /* BootstrapのDangerカラー */
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+
+.form-container .link-text {
+    margin-top: 20px;
+    font-size: 0.95rem;
+}
+
+.form-container .link-text a {
+    color: #1e88e5;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.form-container .link-text a:hover {
+    text-decoration: underline;
+}
+
+/* コレクションページ用のグリッドレイアウト */
+.collection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* 250pxを最小幅に、自動調整 */
+    gap: 20px; /* グリッド間のスペース */
+    padding: 10px;
+    width: 100%; /* 親要素の幅いっぱいに広がる */
+    max-width: 900px; /* 最大幅を設定して中央寄せ */
+    margin: 0 auto;
+}
+
+.collection-grid .character {
+    flex-direction: column; /* 縦並びにする */
+    align-items: center;
+    text-align: center;
+    padding: 20px; /* パディングを少し増やす */
+    width: auto; /* グリッドアイテムなのでflex-basisは不要 */
+    margin: 0; /* 中央寄せマージンも不要 */
+}
+
+.collection-grid .character img {
+    margin-right: 0;
+    margin-bottom: 10px; /* 画像とテキストの間にスペース */
+    width: 90px; /* コレクション画像サイズを調整 */
+    height: 90px;
+}
+
+.collection-grid .character small {
+    display: block; /* 獲得日を新しい行に表示 */
+    margin-top: 8px;
+    color: #555;
+    font-size: 0.85rem;
+}
+
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    button {
+        font-size: 1rem;
+        padding: 10px 20px;
+        margin: 5px 8px;
+    }
+
+    .section {
+        margin: 15px 0;
+        padding: 15px;
+        width: 95%; /* モバイルでは少し幅を広げる */
+    }
+
+    .character {
+        font-size: 1rem;
+        padding: 10px;
+        flex-basis: calc(100% - 10px); /* 1列表示 */
+    }
+
+    .character img {
+        width: 50px;
+        height: 50px;
+        margin-right: 10px;
+    }
+
+    #result {
+        font-size: 1.2rem;
+    }
+
+    #result img {
+        max-width: 80px;
+        max-height: 80px;
+    }
+
+    /* フォームの調整 */
+    .form-container {
+        padding: 20px;
+        max-width: 95%;
+    }
+
+    .form-container input[type="text"],
+    .form-container input[type="password"],
+    .form-container button {
+        padding: 10px;
+        font-size: 1rem;
+    }
+
+    /* コレクショングリッドのモバイル対応 */
+    .collection-grid {
+        grid-template-columns: 1fr; /* モバイルでは1列にする */
+        gap: 15px;
+        max-width: 100%;
+    }
+
+    .collection-grid .character {
+        width: calc(100% - 20px); /* パディングを考慮 */
+    }
+}
+
+/* さらに小さい画面用 (例: iPhone SEなど) */
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    h1 {
+        font-size: 1.8rem;
+    }
+    .section {
+        padding: 10px;
+    }
+    .character {
+        flex-direction: column; /* 常に縦並び */
+        align-items: center;
+        text-align: center;
+    }
+    .character img {
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+    .form-container {
+        padding: 15px;
+    }
+}
+
+/* ガチャで獲得したキャラクター単体を一時的に表示するスタイル */
+.gacha-single-result {
+    margin-top: 20px;
+    padding: 15px;
+    border: 2px dashed #a0d468; /* 目立つボーダー */
+    border-radius: 8px;
+    background-color: #e6ffe6; /* 薄い緑の背景 */
+    text-align: center;
+    min-height: 120px; /* ある程度の高さを確保 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.gacha-single-result .character {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.gacha-single-result .character img {
+    width: 80px; /* 画像サイズ調整 */
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 5px;
+}
